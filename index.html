@@ -5,15 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snake Game</title>
 <style>
-  body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f0f0f0; }
   canvas { background: #000; margin-top: 10px; }
-  #gameControls { margin-top: 20px; }
+  #gameControls { margin-top: 20px; display: flex; justify-content: center; }
+  button { padding: 10px 20px; margin: 5px; }
+  #directionControls { display: flex; flex-direction: column; align-items: center; }
+  .direction-row { display: flex; }
+  .dir-btn { width: 40px; height: 40px; margin: 2px; }
 </style>
 </head>
 <body>
 <button id="startButton">Start Game</button>
 <button id="restartButton" style="display:none;">Restart Game</button>
 <canvas id="gameCanvas" width="400" height="400"></canvas>
+<div id="directionControls">
+  <div class="direction-row">
+    <button class="dir-btn"> </button>
+    <button class="dir-btn" onclick="setDirection(0, -1)">↑</button>
+    <button class="dir-btn"> </button>
+  </div>
+  <div class="direction-row">
+    <button class="dir-btn" onclick="setDirection(-1, 0)">←</button>
+    <button class="dir-btn"> </button>
+    <button class="dir-btn" onclick="setDirection(1, 0)">→</button>
+  </div>
+  <div class="direction-row">
+    <button class="dir-btn"> </button>
+    <button class="dir-btn" onclick="setDirection(0, 1)">↓</button>
+    <button class="dir-btn"> </button>
+  </div>
+</div>
 <script>
   var canvas = document.getElementById('gameCanvas');
   var ctx = canvas.getContext('2d');
@@ -35,10 +56,12 @@
     if (head.x === food.x && head.y === food.y) {
       score += 10;
       placeFood();
-    } else {
-      snake.pop();
+    } else if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize || snake.slice(1).some(part => part.x === head.x && part.y === head.y)) {
+      stopGame();
+      return;
     }
     snake.unshift(head);
+    snake.pop();
   }
 
   function draw() {
@@ -66,18 +89,31 @@
     document.getElementById('restartButton').style.display = 'inline';
   }
 
+  function stopGame() {
+    clearInterval(gameInterval);
+    alert('Game Over! Your score was: ' + score);
+    document.getElementById('restartButton').style.display = 'none';
+    document.getElementById('startButton').style.display = 'inline';
+  }
+
   function restartGame() {
     startGame();
+  }
+
+  function setDirection(x, y) {
+    if ((velocity.x === 0 && x !== 0) || (velocity.y === 0 && y !== 0)) {
+      velocity = {x: x, y: y};
+    }
   }
 
   document.getElementById('startButton').addEventListener('click', startGame);
   document.getElementById('restartButton').addEventListener('click', restartGame);
 
   window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp' && velocity.y === 0) velocity = {x: 0, y: -1};
-    if (e.key === 'ArrowDown' && velocity.y === 0) velocity = {x: 0, y: 1};
-    if (e.key === 'ArrowLeft' && velocity.x === 0) velocity = {x: -1, y: 0};
-    if (e.key === 'ArrowRight' && velocity.x === 0) velocity = {x: 1, y: 0};
+    if (e.key === 'ArrowUp') setDirection(0, -1);
+    if (e.key === 'ArrowDown') setDirection(0, 1);
+    if (e.key === 'ArrowLeft') setDirection(-1, 0);
+    if (e.key === 'ArrowRight') setDirection(1, 0);
   });
 </script>
 </body>
